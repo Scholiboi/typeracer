@@ -17,13 +17,13 @@ class TypingSpeedApp(QWidget):
     def build(self):
         layout = QVBoxLayout()
 
-        self.label = QLabel("Click 'Start' and start typing below:", self)
+        self.label = QLabel("Start typing below:", self)
         layout.addWidget(self.label)
 
         self.text_input = QLineEdit(self)
         layout.addWidget(self.text_input)
 
-        self.button = QPushButton("Start", self)
+        self.button = QPushButton("Reset", self)
         layout.addWidget(self.button)
 
         self.result_label = QLabel("", self)
@@ -31,33 +31,41 @@ class TypingSpeedApp(QWidget):
 
         self.setLayout(layout)
 
-        self.button.clicked.connect(self.start_or_stop)
-        self.text_input.textChanged.connect(self.update_typing)
+        self.button.clicked.connect(self.reset)
+        self.text_input.textChanged.connect(self.start_or_update)
+        self.text_input.returnPressed.connect(self.stop)
 
         self.setWindowTitle("Typing Speed Calculator")
         self.setGeometry(300, 300, 400, 200)
 
-    def start_or_stop(self):
+    def start_or_update(self):
         if not self.typing_active:
             self.start_time = time.time()
-            self.text_input.clear()
-            self.text_input.setEnabled(True)
             self.typing_active = True
-            self.button.setText("Stop")
-            self.result_label.setText("")
         else:
-            end_time = time.time()
-            elapsed_time = end_time - self.start_time
+            intermediate_time = time.time()
+            elapsed_time = intermediate_time - self.start_time
             word_count = len(self.text_input.text().split())
             wpm = (word_count / elapsed_time) * 60 if elapsed_time > 0 else 0
-            self.result_label.setText(f"Typing Speed: {wpm:.2f} WPM")
-            self.typing_active = False
-            self.button.setText("Start")
-            self.text_input.setEnabled(False)
+            self.result_label.setText(f"Current Typing Speed: {wpm:.2f} WPM")
 
-    def update_typing(self):
-        if not self.typing_active:
-            self.text_input.clear()
+    def reset(self):
+        print("starting over")
+        self.text_input.clear()
+        self.result_label.setText("")
+        self.button.setText("Reset")
+        self.text_input.setEnabled(True)
+        self.typing_active = False
+
+
+    def stop(self):
+        end_time = time.time()
+        elapsed_time = end_time - self.start_time
+        word_count = len(self.text_input.text().split())
+        wpm = (word_count / elapsed_time) * 60 if elapsed_time > 0 else 0
+        self.result_label.setText(f"Final Typing Speed: {wpm:.2f} WPM")
+        self.typing_active = False
+        self.text_input.setEnabled(False) # disable the text input field
 
 
 if __name__ == "__main__":
